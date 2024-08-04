@@ -4,6 +4,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { TodosList } from "./contexts/Todos";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { ToastProvider } from "./contexts/ToastContext";
 
 const theme = createTheme({
   typography: {
@@ -11,14 +12,10 @@ const theme = createTheme({
   },
   palette: {
     primary: {
-      main: "#00695c",
-    },
-    secondary: {
-      main: "#093170",
+      main: "#5c6bc0",
     },
   },
 });
-
 const initialTodos = [
   {
     id: uuidv4(),
@@ -43,11 +40,13 @@ function App() {
   const [todos, setTodos] = useState(initialTodos);
   return (
     <ThemeProvider theme={theme}>
-      <div className="App">
-        <TodosList.Provider value={{ todos, setTodos }}>
-          <List />
-        </TodosList.Provider>
-      </div>
+      <ToastProvider>
+        <div className="App">
+          <TodosList.Provider value={{ todos, setTodos }}>
+            <List />
+          </TodosList.Provider>
+        </div>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

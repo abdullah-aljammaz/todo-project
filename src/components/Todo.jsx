@@ -1,11 +1,12 @@
 import * as React from "react";
-import { useContext, useState } from "react";
+import { useContext, useReducer } from "react";
+// Context
 import { TodosList } from "../contexts/Todos";
+import { useToast } from "../contexts/ToastContext";
 
 // Layout
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Unstable_Grid2";
 
@@ -16,93 +17,26 @@ import ModeEditOutlineOutlinedIcon from "@mui/icons-material/ModeEditOutlineOutl
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 
 // Dialog
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
 
 // Others
-import TextField from "@mui/material/TextField";
 import "../App.css";
 import Divider from "@mui/material/Divider";
-export default function Todo({ todo }) {
+export default function Todo({ todo, showDelete, showUpdate }) {
+  // Contexts
   const { todos, setTodos } = useContext(TodosList);
-
-  // EVENT HANDLERS
-
-  // EDIT EVENT HANDLERS
-  // UPDATE STATE
-  const [openUpdate, setOpenUpdate] = useState(false);
-
-  // new date for task
-  const [newTaskValues, setNewTaskValues] = useState({
-    title: todo.title,
-    details: todo.details,
-  });
-
-  // Update the Task
-  const taskUpdatedValue = (e) => {
-    setNewTaskValues({ ...newTaskValues, [e.target.name]: e.target.value });
-  };
+  const { showHideToast } = useToast();
 
   const handleUpdateClickOpen = () => {
-    setOpenUpdate(true);
-  };
-
-  const handleUpdateClose = () => {
-    setOpenUpdate(false);
-  };
-
-  const handleUpdateConfirm = () => {
-    if (newTaskValues.title.trim() || newTaskValues.details.trim()) {
-      const updateTodos = todos.map((task) => {
-        if (task.id === todo.id) {
-          return {
-            ...task,
-            title: newTaskValues.title,
-            details: newTaskValues.details,
-          };
-        } else {
-          return task;
-        }
-      });
-      setTodos(() => {
-        localStorage.setItem("tasks", JSON.stringify(updateTodos));
-        handleUpdateClose();
-        return updateTodos;
-      });
-    } else {
-      handleDeleteClickOpen();
-    }
+    showUpdate(todo);
   };
 
   // === EDIT EVENT HANDLERS ====
   // === UPDATE STATE ====
 
-  // DELETE EVENT HANDLERS
-  // DELETE STATE
-  const [openDelete, setOpenDelete] = useState(false);
-
+  // Delete
   const handleDeleteClickOpen = () => {
-    setOpenDelete(true);
+    showDelete(todo);
   };
-
-  const handleDeleteClose = () => {
-    setOpenDelete(false);
-  };
-
-  const handleDeleteConfirm = () => {
-    const deleteTodoById = todos.filter((t) => todo.id !== t.id);
-
-    // to Update the List
-    setTodos(deleteTodoById);
-    localStorage.setItem("tasks", JSON.stringify(deleteTodoById));
-
-    // Close the Dialog
-    handleDeleteClose();
-  };
-  // ==== DELETE EVENT HANDLERS ====
 
   // Make success the todo is finish
   const handleCheckClick = () => {
@@ -113,6 +47,7 @@ export default function Todo({ todo }) {
       return t;
     });
     setTodos(updateTodos);
+    showHideToast(todo.isCompleted ? "تم الاضافة بنجاح" : "تمت الازالة بنجاح");
     localStorage.setItem("tasks", JSON.stringify(updateTodos));
   };
 
@@ -120,74 +55,8 @@ export default function Todo({ todo }) {
   return (
     <>
       {/* UPDATE DIALOG */}
-      <Dialog
-        dir="rtl"
-        open={openUpdate}
-        onClose={handleUpdateClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle>تعديل إسم المهمة</DialogTitle>
-        <DialogContent>
-          <DialogContentText>قم بوضع اسم المهمة الجديدة</DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="title"
-            name="title"
-            label="عنوان المهمة"
-            type="text"
-            fullWidth
-            variant="standard"
-            onChange={taskUpdatedValue}
-            value={newTaskValues.title}
-          />
-          <TextField
-            autoFocus
-            margin="dense"
-            id="details"
-            name="details"
-            label="التفاصيل"
-            type="text"
-            fullWidth
-            variant="standard"
-            onChange={taskUpdatedValue}
-            value={newTaskValues.details}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleUpdateClose}>إغلاق</Button>
-          <Button type="submit" onClick={handleUpdateConfirm}>
-            تأكيد
-          </Button>
-        </DialogActions>
-      </Dialog>
-      {/* ==== UPDATE DIALOG ==== */}
 
-      {/* DELETE DIALOG */}
-      <Dialog
-        dir="rtl"
-        open={openDelete}
-        onClose={handleDeleteClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          هل أنت متأكد من رغبتك في حذف المهمة
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            لايمكنك التراجع عن الحذف بعد إتمامه
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteClose}>إغلاق</Button>
-          <Button onClick={handleDeleteConfirm} autoFocus>
-            نعم, قم بالحذف
-          </Button>
-        </DialogActions>
-      </Dialog>
-      {/* ==== DELETE DIALOG ==== */}
+      {/* ==== UPDATE DIALOG ==== */}
       <Card
         className="todoCard"
         sx={{
